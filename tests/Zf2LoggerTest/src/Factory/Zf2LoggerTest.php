@@ -90,7 +90,7 @@ class Zf2LoggerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $this->loggerFactory->getLogger()->getWriters()->count());
 
         foreach($this->loggerFactory->getLogger()->getWriters() as $writer) {
-            $this->assertInstanceOf('Zend\Log\Writer\Null', $writer);
+            $this->assertInstanceOf('Zend\Log\Writer\Noop', $writer);
         }
     }
 }

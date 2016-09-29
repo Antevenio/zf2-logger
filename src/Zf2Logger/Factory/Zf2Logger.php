@@ -19,7 +19,7 @@ class Zf2Logger implements FactoryInterface
         return $this->logger;
     }
 
-    /**
+     /**
      * Create service
      *
      * @param ServiceLocatorInterface $serviceLocator
@@ -27,7 +27,13 @@ class Zf2Logger implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        $config = $serviceLocator->get('Config');
+        return $this->__invoke($serviceLocator, null);
+    }
+
+    public function __invoke(\Interop\Container\ContainerInterface $container,
+                             $requestedName, array $options = null)
+    {
+        $config = $container->get('Config');
         $config = $config['EddieJaoude\Zf2Logger'];
         $this->logger = new Logger();
 
@@ -96,7 +102,7 @@ class Zf2Logger implements FactoryInterface
     private function execute()
     {
         if ($this->logger->getWriters()->count() == 0) {
-            return $this->logger->addWriter(new \Zend\Log\Writer\Null);
+            return $this->logger->addWriter(new  \Zend\Log\Writer\Noop);
         }
     }
 }
