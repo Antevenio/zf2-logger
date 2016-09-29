@@ -1,4 +1,5 @@
 <?php
+
 namespace EddieJaoude\Zf2Logger\Listener;
 
 use Zend\EventManager\ListenerAggregateInterface;
@@ -6,7 +7,6 @@ use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\EventInterface;
 use Zend\Log\Logger as Log;
 use Zend\Mvc\MvcEvent;
-use Zend\Stdlib\CallbackHandler;
 
 /**
  * Class Response
@@ -15,7 +15,6 @@ use Zend\Stdlib\CallbackHandler;
  */
 class Response implements ListenerAggregateInterface
 {
-
     /**
      * @var Log
      */
@@ -90,14 +89,13 @@ class Response implements ListenerAggregateInterface
     }
 
     /**
-     * @param CallbackHandler $listeners
+     * @param callable $listeners
      *
      * @return Response
      */
-    public function addListener(CallbackHandler $listeners)
+    public function addListener(callable $listeners)
     {
         $this->listeners[] = $listeners;
-
         return $this;
     }
 
@@ -120,10 +118,15 @@ class Response implements ListenerAggregateInterface
     /**
      * @param EventManagerInterface $events
      */
-    public function attach(EventManagerInterface $events)
+    public function attach(EventManagerInterface $events, $priority = 1)
     {
-        $this->addListener($events->attach(MvcEvent::EVENT_FINISH, array($this, 'logResponse')));
-        $this->addListener($events->attach(MvcEvent::EVENT_FINISH, array($this, 'shutdown'), -1000));
+        $callbackFinish = $events->attach(MvcEvent::EVENT_FINISH,
+            array($this, 'logResponse'));
+        $this->addListener($callbackFinish);
+
+        $callbackFinishShutdown = $events->attach(MvcEvent::EVENT_FINISH,
+            array($this, 'shutdown'), -1000);
+        $this->addListener($callbackFinishShutdown);
     }
 
     /**
@@ -132,9 +135,8 @@ class Response implements ListenerAggregateInterface
     public function detach(EventManagerInterface $events)
     {
         foreach ($this->getListeners() as $index => $listener) {
-            if ($events->detach($listener)) {
-                $this->removeListener($index);
-            }
+            $events->detach($listener);
+            $this->removeListener($index);
         }
     }
 
@@ -148,8 +150,9 @@ class Response implements ListenerAggregateInterface
             $contentType = $event->getResponse()->getHeaders()->get('Content-Type');
             $content = $event->getResponse()->getContent();
 
-            if($contentType instanceof \Zend\Http\Header\ContentType) {
-                if(in_array($event->getResponse()->getHeaders()->get('Content-Type')->getMediaType(), $this->getIgnoreMediaTypes())) {
+            if ($contentType instanceof \Zend\Http\Header\ContentType) {
+                if (in_array($event->getResponse()->getHeaders()->get('Content-Type')->getMediaType(),
+                        $this->getIgnoreMediaTypes())) {
                     $content = 'BINARY';
                 }
             }
@@ -157,17 +160,16 @@ class Response implements ListenerAggregateInterface
             $this->getLog()->debug(
                 print_r(
                     array(
-                        $event->getRequest()->getUri()->getHost() => array(
-                            'Response' => array(
-                                'statusCode'  => $event->getResponse()->getStatusCode(),
-                                'contentType' => (!$event->getResponse()->getHeaders()->get('Content-Type'))
-                                        ? 'unknown' : $event->getResponse()->getHeaders()->get('Content-Type')->getMediaType(),
-                                'content'     => $content,
-                            )
-                        )
+                $event->getRequest()->getUri()->getHost() => array(
+                    'Response' => array(
+                        'statusCode' => $event->getResponse()->getStatusCode(),
+                        'contentType' => (!$event->getResponse()->getHeaders()->get('Content-Type'))
+                                ? 'unknown' : $event->getResponse()->getHeaders()->get('Content-Type')->getMediaType(),
+                        'content' => $content,
                     )
-                    ,
-                    true
+                )
+                    )
+                    , true
                 )
             );
         }
@@ -178,7 +180,7 @@ class Response implements ListenerAggregateInterface
      */
     public function shutdown(EventInterface $event)
     {
-        foreach($this->getLog()->getWriters() as $writer) {
+        foreach ($this->getLog()->getWriters() as $writer) {
             $writer->shutdown();
         }
     }

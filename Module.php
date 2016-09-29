@@ -13,22 +13,20 @@ class Module
      */
     public function onBootstrap(MvcEvent $e)
     {
+        /* @var $eventManager \Zend\EventManager\EventManager */
         $eventManager        = $e->getApplication()->getEventManager();
         $moduleRouteListener = new ModuleRouteListener();
         $moduleRouteListener->attach($eventManager);
-
-        $eventManager->attach(
-            new Request($e->getApplication()->getServiceManager()->get('EddieJaoude\Zf2Logger'))
-        );
+        $zf2Logger = $e->getApplication()->getServiceManager()->get('EddieJaoude\Zf2Logger');
+        $request = new Request($zf2Logger);
+        $request->attach($eventManager);
 
         $config = $e->getApplication()->getServiceManager()->get('Config');
         $moduleConfig = $config['EddieJaoude\Zf2Logger'];
-
-        $response   = new Response($e->getApplication()->getServiceManager()->get('EddieJaoude\Zf2Logger'));
+        $response   = new Response($zf2Logger);
         $mediaTypes = empty($moduleConfig['doNotLog']['mediaTypes']) ? array() : $moduleConfig['doNotLog']['mediaTypes'];
         $response->setIgnoreMediaTypes($mediaTypes);
-        $eventManager->attach($response);
-
+        $response->attach($eventManager);
         return;
     }
 

@@ -1,8 +1,8 @@
 <?php
+
 namespace EddieJaoude\Zf2Logger\Tests\Zf2LoggerTest\Listener;
 
 use EddieJaoude\Zf2Logger\Listener\Response;
-
 
 /**
  * Class ResponseTest
@@ -11,7 +11,6 @@ use EddieJaoude\Zf2Logger\Listener\Response;
  */
 class ResponseTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @var \EddieJaoude\Zf2Logger\Listener\Response
      */
@@ -27,7 +26,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
      */
     private $writer;
 
-    public function  setUp()
+    public function setUp()
     {
         $this->writer = new \Zend\Log\Writer\Mock;
 
@@ -39,7 +38,8 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testInstance()
     {
-        $this->assertInstanceOf('EddieJaoude\Zf2Logger\Listener\Response', $this->instance);
+        $this->assertInstanceOf('EddieJaoude\Zf2Logger\Listener\Response',
+            $this->instance);
     }
 
     public function testConstruct()
@@ -63,21 +63,19 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
     {
         $this->assertEquals(array(), $this->instance->getListeners());
 
+        $callback = function() {
+
+        };
+
         $this->assertInstanceOf(
             'EddieJaoude\Zf2Logger\Listener\Response',
-            $this->instance->addListener(
-                new \Zend\Stdlib\CallbackHandler(function () {
-                })
-            )
+            $this->instance->addListener($callback)
         );
 
         $this->assertEquals(1, count($this->instance->getListeners()));
 
         $listeners = $this->instance->getListeners();
-        $this->assertInstanceOf(
-            'Zend\Stdlib\CallbackHandler',
-            $listeners[0]
-        );
+        $this->assertEquals($callback, $listeners[0]);
 
         $this->assertTrue($this->instance->removeListener(0));
         $this->assertEquals(0, count($this->instance->getListeners()));
@@ -85,7 +83,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testAttachDettach()
     {
-        $eventManager = \Mockery::mock('Zend\EventManager\EventManager')->shouldDeferMissing();
+        $eventManager = new \Zend\EventManager\EventManager();
         $this->instance->attach($eventManager);
 
         $this->assertEquals(2, count($this->instance->getListeners()));
@@ -121,7 +119,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
             ->with('Content-Type')
             ->andReturn(
                 $contentType->setMediaType('application/json')
-            );
+        );
 
         $eventManager->shouldReceive('getStatusCode')
             ->andReturn('200');
@@ -130,26 +128,30 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
                 json_encode(
                     array(
                         'user' => array(
-                            'id'   => 123,
+                            'id' => 123,
                             'name' => 'Test me',
                         )
                     )
                 )
-            );
+        );
 
         $this->instance->logResponse($eventManager);
 
-        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'], 'mock.host')));
-        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'], '200')));
-        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'], '123')));
-        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'], 'Test me')));
+        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'],
+                    'mock.host')));
+        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'],
+                    '200')));
+        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'],
+                    '123')));
+        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'],
+                    'Test me')));
     }
 
     public function testLogResponseForBinary()
     {
         $this->instance->setLog($this->logger);
         $this->instance->setIgnoreMediaTypes(
-           array('image/png', 'application/pdf')
+            array('image/png', 'application/pdf')
         );
 
         $request = \Mockery::mock('Zend\Http\PhpEnvironment\Request');
@@ -174,7 +176,7 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
             ->with('Content-Type')
             ->andReturn(
                 $contentType->setMediaType('image/png')
-            );
+        );
 
         $eventManager->shouldReceive('getStatusCode')
             ->andReturn('200');
@@ -183,19 +185,24 @@ class ResponseTest extends \PHPUnit_Framework_TestCase
                 json_encode(
                     array(
                         'user' => array(
-                            'id'   => 123,
+                            'id' => 123,
                             'name' => 'Test me',
                         )
                     )
                 )
-            );
+        );
 
         $this->instance->logResponse($eventManager);
 
-        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'], 'mock.host')));
-        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'], '200')));
-        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'], 'BINARY')));
-        $this->assertFalse(is_int(strpos($this->writer->events[0]['message'], '123')));
-        $this->assertFalse(is_int(strpos($this->writer->events[0]['message'], 'Test me')));
+        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'],
+                    'mock.host')));
+        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'],
+                    '200')));
+        $this->assertTrue(is_int(strpos($this->writer->events[0]['message'],
+                    'BINARY')));
+        $this->assertFalse(is_int(strpos($this->writer->events[0]['message'],
+                    '123')));
+        $this->assertFalse(is_int(strpos($this->writer->events[0]['message'],
+                    'Test me')));
     }
 }

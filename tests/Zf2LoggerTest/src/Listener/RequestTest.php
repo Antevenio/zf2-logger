@@ -3,7 +3,6 @@ namespace EddieJaoude\Zf2Logger\Tests\Zf2LoggerTest\Listener;
 
 use EddieJaoude\Zf2Logger\Listener\Request;
 
-
 /**
  * Class RequestTest
  *
@@ -62,19 +61,17 @@ class RequestTest extends \PHPUnit_Framework_TestCase
     public function testListenerAddGetterRemove()
     {
         $this->assertEquals(array(), $this->instance->getListeners());
+        $callback = function() {};
 
         $this->assertInstanceOf(
             'EddieJaoude\Zf2Logger\Listener\Request',
-            $this->instance->addListener(new \Zend\Stdlib\CallbackHandler(function(){}))
+            $this->instance->addListener($callback)
         );
 
         $this->assertEquals(1, count($this->instance->getListeners()));
 
         $listeners = $this->instance->getListeners();
-        $this->assertInstanceOf(
-            'Zend\Stdlib\CallbackHandler',
-            $listeners[0]
-        );
+        $this->assertEquals($callback, $listeners[0]);
 
         $this->assertTrue($this->instance->removeListener(0));
         $this->assertEquals(0, count($this->instance->getListeners()));
@@ -82,7 +79,7 @@ class RequestTest extends \PHPUnit_Framework_TestCase
 
     public function testAttachDettach()
     {
-        $eventManager = \Mockery::mock('Zend\EventManager\EventManager')->shouldDeferMissing();
+        $eventManager = new \Zend\EventManager\EventManager(); //\Mockery::mock('Zend\EventManager\EventManager')->shouldDeferMissing();
         $this->instance->attach($eventManager);
 
         $this->assertEquals(1, count($this->instance->getListeners()));

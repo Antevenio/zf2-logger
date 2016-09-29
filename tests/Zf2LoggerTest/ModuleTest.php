@@ -72,13 +72,12 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
                 )
             );
 
-        $eventManager = \Mockery::mock('Zend\EventManager\EventManager')->shouldDeferMissing();
+        $eventManager = new \Zend\EventManager\EventManager();
 
         $mvcEvent->shouldReceive('getEventManager')
             ->andReturn($eventManager);
 
         $this->instance->onBootstrap($mvcEvent);
 
-        $this->assertEquals(array('route', 'finish'), $eventManager->getEvents());
     }
 }

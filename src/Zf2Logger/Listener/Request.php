@@ -6,7 +6,6 @@ use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\EventInterface;
 use Zend\Log\Logger as Log;
 use Zend\Mvc\MvcEvent;
-use Zend\Stdlib\CallbackHandler;
 
 /**
  * Class Request
@@ -65,11 +64,11 @@ class Request implements ListenerAggregateInterface
     }
 
     /**
-     * @param CallbackHandler $listeners
+     * @param callable $listeners
      *
      * @return Request
      */
-    public function addListener(CallbackHandler $listeners)
+    public function addListener($listeners)
     {
         $this->listeners[] = $listeners;
 
@@ -85,7 +84,6 @@ class Request implements ListenerAggregateInterface
     {
         if (!empty($this->listeners[$index])) {
             unset($this->listeners[$index]);
-
             return true;
         }
 
@@ -95,9 +93,10 @@ class Request implements ListenerAggregateInterface
     /**
      * @param EventManagerInterface $events
      */
-    public function attach(EventManagerInterface $events)
+    public function attach(EventManagerInterface $events, $priority=1)
     {
-        $this->addListener($events->attach(MvcEvent::EVENT_ROUTE, array($this, 'logRequest')));
+        $callback = $events->attach(MvcEvent::EVENT_ROUTE, array($this, 'logRequest'));
+        $this->addListener($callback);
     }
 
     /**
@@ -106,9 +105,8 @@ class Request implements ListenerAggregateInterface
     public function detach(EventManagerInterface $events)
     {
         foreach ($this->getListeners() as $index => $listener) {
-            if ($events->detach($listener)) {
-                $this->removeListener($index);
-            }
+            $events->detach($listener);
+            $this->removeListener($index);
         }
     }
 
