@@ -19,19 +19,23 @@ class Zf2Logger implements FactoryInterface
         return $this->logger;
     }
 
-     /**
+    /**
      * Create service
-     *
      * @param ServiceLocatorInterface $serviceLocator
-     * @return \Zend\Http\Client
+     * @return Logger
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        return $this->__invoke($serviceLocator, null);
+        return $this->build($serviceLocator);
     }
 
     public function __invoke(\Interop\Container\ContainerInterface $container,
                              $requestedName, array $options = null)
+    {
+        return $this->build($container);
+    }
+
+    private function build($container)
     {
         $config = $container->get('Config');
         $config = $config['EddieJaoude\Zf2Logger'];
